@@ -10,6 +10,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+
+if (!builder.Environment.IsDevelopment())
+{
+    // In Azure, use the default port (80/443)
+    builder.WebHost.UseUrls();
+}
+
 
 // Add services to the container.
 builder.Services.AddOpenApi();
@@ -118,29 +126,22 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+
     app.MapOpenApi();
     
     // Enable Swagger UI
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Simple JWT API v1");
-        c.RoutePrefix = "swagger"; // Access at /swagger
-        c.DocumentTitle = "Simple JWT API Documentation";
-        
-        // Customize Swagger UI
-        c.DefaultModelsExpandDepth(-1); // Hide models section by default
-        c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None); // Collapse operations by default
-        c.EnableDeepLinking();
-        c.EnableFilter();
-        c.ShowExtensions();
-        c.EnableValidator();
-    });
-}
+   app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Simple JWT API v1");
+    options.RoutePrefix = string.Empty; // Serve Swagger UI at root
+    options.DocumentTitle = "Simple JWT API Documentation";
+    options.DefaultModelsExpandDepth(-1);
+    options.DefaultModelRendering(Swashbuckle.AspNetCore.SwaggerUI.ModelRendering.Model);
+});
 
-app.UseHttpsRedirection();
+
+
 
 // Enable authentication and authorization middleware
 // ORDER IS IMPORTANT: Authentication must come before Authorization
@@ -375,48 +376,3 @@ app.MapGet("/api/public/health", () =>
 
 app.Run();
 
-/*
-=============================================================================
-COMPREHENSIVE EXPLANATION OF JWT AUTHENTICATION FLOW:
-=============================================================================
-
-1. CLIENT REGISTRATION & CREDENTIALS:
-   - Client applications are registered with unique client_id and client_secret
-   - These credentials are stored securely (in this demo, in appsettings.json)
-   - In production, client_secret should be hashed and stored in database
-
-2. HOW WE GET CLIENT ID & CLIENT SECRET:
-   - From HTTP request body in /auth/token endpoint
-   - Validated against configured/stored credentials
-   - In real apps: database lookup with secure hash comparison
-
-3. TOKEN GENERATION PROCESS:
-   - Client sends POST to /auth/token with credentials
-   - Server validates credentials
-   - If valid, JWT token is generated with claims (client_id, scope, etc.)
-   - Token is signed with secret key and returned to client
-
-4. HOW WE GET CLAIMS PRINCIPAL:
-   - Client includes JWT token in Authorization header: "Bearer <token>"
-   - JWT middleware automatically validates token on each request
-   - If valid, ClaimsPrincipal is created from token claims
-   - Available as HttpContext.User or injected directly into endpoints
-
-5. AUTHORIZATION FLOW:
-   - [Authorize] or .RequireAuthorization() protects endpoints
-   - Middleware checks for valid JWT token
-   - Claims from token become available for business logic
-   - Can check specific claims for fine-grained authorization
-
-6. SECURITY CONSIDERATIONS:
-   - Secret key must be kept secure and rotated regularly
-   - Tokens have expiration time to limit exposure
-   - HTTPS required to protect tokens in transit
-   - Consider token refresh mechanisms for long-lived clients
-
-TESTING THE API:
-1. POST /auth/token with client credentials to get token
-2. Use token in Authorization header for protected endpoints
-3. Access /auth/me to see claims information
-4. Perform CRUD operations on products with authentication
-*/
