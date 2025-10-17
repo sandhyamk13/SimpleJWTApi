@@ -1,6 +1,6 @@
 # Simple JWT API
 
-A production-ready ASP.NET Core 9.0 Minimal API implementing JWT Bearer authentication with OAuth 2.0 Client Credentials Grant flow. This project demonstrates modern .NET development practices with comprehensive security, documentation, and containerization support.
+A production-ready ASP.NET Core 9.0 Minimal API implementing with OAuth 2.0 Client Credentials Grant flow and using JWT as accesstoken. This project demonstrates modern .NET development practices with comprehensive security, documentation, and containerization support.
 
 
 ## 🚀 Features
