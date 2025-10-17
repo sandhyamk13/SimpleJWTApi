@@ -1,0 +1,100 @@
+### JWT Authentication and CRUD API Testing
+
+### SWAGGER UI Access
+# Open in browser: http://localhost:5189/swagger
+# This provides an interactive API documentation where you can test all endpoints directly
+
+### Variables
+@baseUrl = http://localhost:5189
+@token = {{auth_token.response.body.accessToken}}
+
+### 1. Get JWT Token using Client Credentials
+# POST {{baseUrl}}/auth/token
+POST {{baseUrl}}/auth/token
+Content-Type: application/json
+
+{
+  "clientId": "simple-jwt-client",
+  "clientSecret": "your-client-secret-key-123456",
+  "scope": "api:read api:write"
+}
+
+### Store the token for subsequent requests
+# @name auth_token
+POST {{baseUrl}}/auth/token
+Content-Type: application/json
+
+{
+  "clientId": "simple-jwt-client",
+  "clientSecret": "your-client-secret-key-123456",
+  "scope": "api:read api:write"
+}
+
+### 2. Test Authentication - Get Current User Info
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{token}}
+
+### 3. Public Health Check (No Authentication Required)
+GET {{baseUrl}}/api/public/health
+
+### 4. Get All Products (Requires Authentication)
+GET {{baseUrl}}/api/products
+Authorization: Bearer {{token}}
+
+### 5. Get Specific Product by ID
+GET {{baseUrl}}/api/products/1
+Authorization: Bearer {{token}}
+
+### 6. Create New Product
+POST {{baseUrl}}/api/products
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Gaming Monitor",
+  "description": "27-inch 144Hz gaming monitor",
+  "price": 299.99,
+  "categoryId": 3
+}
+
+### 7. Update Product
+PUT {{baseUrl}}/api/products/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Updated Laptop",
+  "price": 1099.99
+}
+
+### 8. Delete Product
+DELETE {{baseUrl}}/api/products/3
+Authorization: Bearer {{token}}
+
+### 9. Test with Invalid Token (Should fail)
+GET {{baseUrl}}/api/products
+Authorization: Bearer invalid-token-here
+
+### 10. Test with Missing Token (Should fail)
+GET {{baseUrl}}/api/products
+
+###
+# Test Invalid Client Credentials
+POST {{baseUrl}}/auth/token
+Content-Type: application/json
+
+{
+  "clientId": "wrong-client",
+  "clientSecret": "wrong-secret"
+}
+
+### 
+# Test Missing Required Fields
+POST {{baseUrl}}/api/products
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "",
+  "price": -10
+}
